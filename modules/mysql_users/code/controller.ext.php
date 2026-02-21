@@ -436,13 +436,11 @@ class module_controller extends ctrl_module
         $my_name_vc = $zdbh->mysqlRealEscapeString($rowdb['my_name_vc']);
         $mu_name_vc = $zdbh->mysqlRealEscapeString($rowuser['mu_name_vc']);
         $mu_access_vc = $zdbh->mysqlRealEscapeString($rowuser['mu_access_vc']);
-        $sql = $zdbh->prepare("GRANT ALL PRIVILEGES ON `$my_name_vc`.* TO `$mu_name_vc`@`$mu_access_vc`");
-        $sql->bindParam(':my_name_vc', $rowdb['my_name_vc'], PDO::PARAM_STR);
-        $sql->bindParam(':mu_name_vc', $rowuser['mu_name_vc'], PDO::PARAM_STR);
-        $sql->bindParam(':mu_access_vc', $rowuser['mu_access_vc'], PDO::PARAM_STR);
-        $sql->execute();
-        $sql = $zdbh->prepare("FLUSH PRIVILEGES");
-        $sql->execute();
+        // GRANT statement - cannot use parameter binding for database/user names
+        // MySQL GRANT statements don't support placeholders for database, user, or host names
+        $grant_sql = "GRANT ALL PRIVILEGES ON `$my_name_vc`.* TO `$mu_name_vc`@`$mu_access_vc`";
+        $zdbh->exec($grant_sql);
+        $zdbh->exec("FLUSH PRIVILEGES");
         $sql2 = $zdbh->prepare("
 			INSERT INTO x_mysql_dbmap (
 							mm_acc_fk,
